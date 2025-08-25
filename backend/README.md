@@ -1,4 +1,4 @@
-# Backend API
+# Smart Summary App - Backend API
 
 A high-performance FastAPI backend application with Google Gemini AI integration, designed for intelligent text summarization with real-time streaming capabilities.
 
@@ -57,7 +57,7 @@ backend/
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd easymate/backend
+cd smart-summary-app/backend
 
 # Create and activate virtual environment
 python3 -m venv venv
@@ -115,6 +115,45 @@ Visit http://localhost:8000/docs to see the interactive API documentation, or ch
 ```bash
 curl http://localhost:8000/api/v1/health
 ```
+
+## ⚡ Quick Reference
+
+### Essential Commands
+
+```bash
+# Quick setup (recommended)
+./build.sh && ./start.sh
+
+# Manual setup
+python3 -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env  # Then edit with your GEMINI_API_KEY
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Docker setup
+docker build -t smart-summary-backend .
+docker run -p 8000:8000 --env-file .env smart-summary-backend
+
+# Production
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+### Important URLs
+
+- **API Documentation**: http://localhost:8000/docs
+- **Health Check**: http://localhost:8000/api/v1/health
+- **Main Endpoint**: POST http://localhost:8000/api/v1/chat/stream
+
+### Key Files
+
+- `app/main.py` - Application entry point
+- `app/core/config.py` - Configuration settings
+- `app/services/gemini_service.py` - AI service integration
+- `requirements.txt` - Python dependencies
+- `.env` - Environment variables (create from .env.example)
+- `Dockerfile` - Container configuration
+- `build.sh` - Development setup script
+- `start.sh` - Development server script
 
 ## API Endpoints
 
@@ -293,7 +332,7 @@ uvicorn app.main:app --port 8002 --workers 4
 ```python
 # Future database integration for user management
 # Recommended: PostgreSQL with async drivers
-DATABASE_URL = "postgresql+asyncpg://user:pass@localhost/easymate"
+DATABASE_URL = "postgresql+asyncpg://user:pass@localhost/smart_summary_app"
 ```
 
 **4. Caching Strategy:**
@@ -343,26 +382,196 @@ ALLOWED_ORIGINS=["https://yourdomain.com"]
 - Request logging and monitoring
 - CORS configuration for specific domains only
 
+## 🚀 Building the Backend
+
+### Development Build (Quick Start)
+
+**Option 1: Using Build Scripts (Recommended)**
+
+```bash
+# Build and set up environment
+./build.sh
+
+# Start development server
+./start.sh
+```
+
+**Option 2: Manual Setup**
+
+```bash
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install --upgrade pip
+pip install -r requirements.txt
+
+# Set up environment
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
+
+# Test the build
+python -c "import app.main; print('✅ Backend ready')"
+
+# Start development server
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
 ### Production Deployment
 
 **1. Container Deployment (Recommended):**
 
+The backend includes a complete `Dockerfile` for production deployment:
+
 ```dockerfile
 FROM python:3.11-slim
+
+# Set working directory
 WORKDIR /app
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Install system dependencies
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements and install Python dependencies
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir --upgrade pip \
+    && pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
 COPY app/ ./app/
+
+# Create non-root user
+RUN adduser --disabled-password --gecos '' appuser \
+    && chown -R appuser:appuser /app
+USER appuser
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/api/v1/health || exit 1
+
+# Run application
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
 ```
 
-**2. Process Management:**
+**Build and run with Docker:**
+
+```bash
+# Build the image
+docker build -t smart-summary-backend .
+
+# Run with environment file
+docker run -p 8000:8000 --env-file .env smart-summary-backend
+
+# Or run with environment variables
+docker run -p 8000:8000 \
+  -e GEMINI_API_KEY=your_key_here \
+  -e ENVIRONMENT=production \
+  -e DEBUG=false \
+  smart-summary-backend
+```
+
+**2. Direct Production Server:**
+
+```bash
+# Set production environment variables
+export ENVIRONMENT=production
+export DEBUG=false
+
+# Run with multiple workers for production
+uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 4
+```
+
+**3. Process Management:**
 
 ```bash
 # Using systemd for production
-sudo systemctl enable easymate-backend
-sudo systemctl start easymate-backend
+sudo systemctl enable smart-summary-backend
+sudo systemctl start smart-summary-backend
 ```
+
+### Build Scripts
+
+The backend includes convenient build scripts:
+
+**`build.sh`** - Sets up the development environment:
+- Creates virtual environment
+- Installs dependencies
+- Sets up configuration files
+- Tests the installation
+
+**`start.sh`** - Starts the development server:
+- Activates virtual environment
+- Validates configuration
+- Starts uvicorn with reload for development
+
+### Build Troubleshooting
+
+**Common Build Issues:**
+
+1. **Permission denied for build scripts:**
+   ```bash
+   chmod +x build.sh start.sh
+   ```
+
+2. **Virtual environment not found:**
+   ```bash
+   # Run build script first
+   ./build.sh
+   ```
+
+3. **Missing GEMINI_API_KEY:**
+   ```bash
+   # Check your .env file
+   cat .env | grep GEMINI_API_KEY
+   
+   # Add your API key
+   echo "GEMINI_API_KEY=your_key_here" >> .env
+   ```
+
+4. **Port 8000 already in use:**
+   ```bash
+   # Kill existing process
+   lsof -ti:8000 | xargs kill -9
+   
+   # Or use different port
+   uvicorn app.main:app --port 8001
+   ```
+
+**Docker Build Issues:**
+
+1. **Docker not installed:**
+   ```bash
+   # Install Docker Desktop or Docker Engine
+   # Then verify installation
+   docker --version
+   ```
+
+2. **Build fails during pip install:**
+   ```bash
+   # Clean build (no cache)
+   docker build --no-cache -t smart-summary-backend .
+   ```
+
+3. **Container fails to start:**
+   ```bash
+   # Check logs
+   docker logs <container_id>
+   
+   # Run interactively for debugging
+   docker run -it smart-summary-backend /bin/bash
+   ```
 
 **3. Monitoring & Logging:**
 
