@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing import List
 import os
 from dotenv import load_dotenv
@@ -7,6 +7,12 @@ load_dotenv()
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore"  # Ignore unknown environment variables
+    )
+
     # API Configuration
     API_V1_PREFIX: str = "/api/v1"
     PROJECT_NAME: str = "Smart Summary App - Backend API"
@@ -41,10 +47,6 @@ class Settings(BaseSettings):
 
     # Logging
     LOG_LEVEL: str = "INFO"
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
 
 
 settings = Settings()
