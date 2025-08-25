@@ -1,24 +1,7 @@
 "use client";
 
-import { Send } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
-import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
-import { oneDark } from "react-syntax-highlighter/dist/esm/styles/prism";
-
-interface ChatMessage {
-  id: string;
-  role: "user" | "assistant";
-  content: string;
-  timestamp: string;
-  isStreaming?: boolean;
-  usage?: {
-    prompt_tokens: number;
-    completion_tokens: number;
-    total_tokens: number;
-  };
-  model?: string;
-}
 
 interface StreamChunk {
   content: string;
@@ -189,11 +172,30 @@ export default function Home() {
     setError(null);
   };
 
+  // Function to preprocess markdown for better parsing
+  const preprocessMarkdown = (text: string) => {
+    if (!text) return text;
+
+    return (
+      text
+        // Ensure headings start on new lines
+        .replace(/([^\n])(#{1,6}\s)/g, "$1\n\n$2")
+        // Add space after # if missing
+        .replace(/(#{1,6})([^\s#])/g, "$1 $2")
+        // Ensure proper spacing after headings
+        .replace(/(#{1,6}[^\n]+)\n([^\n\s])/g, "$1\n\n$2")
+        // Fix bullet points
+        .replace(/([^\n])(\*\s)/g, "$1\n$2")
+        // Ensure paragraphs have proper spacing
+        .replace(/([.!?])\s*([A-Z])/g, "$1\n\n$2")
+    );
+  };
+
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 py-12 px-4">
-      <div className="max-w-4xl mx-auto">
+    <main className="min-h-screen bg-white flex items-center justify-center py-12 px-4">
+      <div className="max-w-4xl w-full">
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
             Smart Summary App
           </h1>
@@ -204,7 +206,7 @@ export default function Home() {
 
         {/* Response Area - Shows above input after user sends message */}
         {responseVisible && (
-          <div className="bg-white rounded-2xl shadow-xl p-8 mb-8">
+          <div className="bg-white rounded-2xl shadow-xl p-8 mb-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold text-gray-900">AI Response</h2>
               {usage && (
@@ -224,7 +226,6 @@ export default function Home() {
               ) : (
                 <div className="max-w-none">
                   <ReactMarkdown
-                    remarkPlugins={[]}
                     components={{
                       // Custom styling for markdown elements with !important to override any conflicts
                       h1: ({ children }) => (
@@ -258,7 +259,7 @@ export default function Home() {
                         </h6>
                       ),
                       p: ({ children }) => (
-                        <p className="text-gray-900 leading-relaxed mb-3">
+                        <p className="text-gray-900 leading-relaxed mb-4 text-justify">
                           {children}
                         </p>
                       ),
@@ -283,33 +284,14 @@ export default function Home() {
                       li: ({ children }) => (
                         <li className="mb-1">{children}</li>
                       ),
-                      code: ({ children, className, ...props }) => {
-                        const match = /language-(\w+)/.exec(className || "");
-                        const language = match ? match[1] : "";
-
-                        return !className ? (
-                          // Inline code
+                      code: ({ children, ...props }) => {
+                        return (
                           <code
                             className="bg-gray-200 text-gray-800 px-1.5 py-0.5 rounded text-sm font-mono"
                             {...props}
                           >
                             {children}
                           </code>
-                        ) : (
-                          // Code block with syntax highlighting
-                          <SyntaxHighlighter
-                            style={oneDark}
-                            language={language}
-                            PreTag="div"
-                            className="rounded-lg mb-3"
-                            customStyle={{
-                              margin: 0,
-                              borderRadius: "0.5rem",
-                            }}
-                            {...props}
-                          >
-                            {String(children).replace(/\n$/, "")}
-                          </SyntaxHighlighter>
                         );
                       },
                       blockquote: ({ children }) => (
@@ -344,7 +326,7 @@ export default function Home() {
                       ),
                     }}
                   >
-                    {response}
+                    {preprocessMarkdown(response)}
                   </ReactMarkdown>
                   {isStreaming && (
                     <span className="inline-block w-2 h-4 bg-blue-600 ml-1 animate-pulse"></span>
@@ -356,55 +338,39 @@ export default function Home() {
         )}
 
         {/* Main Input Form */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label
-                htmlFor="text"
-                className="block text-sm font-medium text-gray-700 mb-2"
-              >
-                Your Message
-              </label>
-              <textarea
-                id="text"
-                value={text}
-                onChange={handleTextChange}
-                placeholder="Type your message here (ask for summaries, explanations, or any help)..."
-                className="w-full h-32 p-4 border border-black rounded-lg text-black focus:outline-none focus:border-black resize-none"
-                disabled={isStreaming}
-              />
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-sm text-gray-500">
-                  {text.length} characters
-                </span>
-              </div>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <textarea
+              id="text"
+              value={text}
+              onChange={handleTextChange}
+              placeholder="Type your message here (ask for summaries, explanations, or any help)..."
+              className="bg-white w-full h-32 p-4 border border-black rounded-lg text-black focus:outline-none focus:border-black resize-none"
+              disabled={isStreaming}
+            />
+          </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <p className="text-red-800">{error}</p>
             </div>
+          )}
 
-            {error && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-800">{error}</p>
-              </div>
+          <button
+            type="submit"
+            disabled={!text.trim() || isStreaming}
+            className="w-full border border-black text-black py-3 px-6 rounded-lg font-medium hover:bg-gray-100 focus:ring-0 cursor-pointer focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+          >
+            {isStreaming ? (
+              <>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                Generating Response...
+              </>
+            ) : (
+              <>Generate Summary</>
             )}
-
-            <button
-              type="submit"
-              disabled={!text.trim() || isStreaming}
-              className="w-full border border-black text-black py-3 px-6 rounded-lg font-medium hover:bg-gray-100 focus:ring-0 cursor-pointer focus:ring-offset-0 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
-            >
-              {isStreaming ? (
-                <>
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                  Generating Response...
-                </>
-              ) : (
-                <>
-                  Send Message
-                  <Send className="w-4 h-4 ml-1" />
-                </>
-              )}
-            </button>
-          </form>
-        </div>
+          </button>
+        </form>
       </div>
     </main>
   );
