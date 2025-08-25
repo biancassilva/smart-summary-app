@@ -3,7 +3,7 @@ import logging
 from typing import AsyncGenerator, List, Optional
 import google.generativeai as genai
 from app.core.config import settings
-from app.core.exceptions import OpenAIServiceException
+from app.core.exceptions import GeminiServiceException
 from app.schemas.chat import ChatMessage, StreamingChatResponse
 
 logger = logging.getLogger(__name__)
@@ -110,7 +110,7 @@ Always format your response using rich markdown to make the summary clear and sc
 
         except Exception as e:
             logger.error(f"Unexpected error in chat_completion: {str(e)}")
-            raise OpenAIServiceException(f"Failed to get chat completion: {str(e)}", 500)
+            raise GeminiServiceException(f"Failed to get chat completion: {str(e)}", 500)
 
     async def chat_completion_stream(
         self,
@@ -159,17 +159,33 @@ Always format your response using rich markdown to make the summary clear and sc
                     full_content += content
                     logger.debug(f"Chunk content: '{content[:50]}...' (length: {len(content)})")
                     
-                    # Send content as-is to preserve markdown formatting
-                    delay_seconds = settings.STREAMING_DELAY_MS / 1000.0
+                    # Break content into smaller pieces for word-by-word effect
+                    words = content.split(' ')
+                    current_word_chunk = ""
+                    words_in_chunk = 0
                     
-                    response_obj = StreamingChatResponse(
-                        content=content,
-                        is_complete=False,
-                        model=current_model
-                    )
-                    logger.debug(f"Yielding complete chunk: '{content}'")
-                    yield response_obj
-                    await asyncio.sleep(delay_seconds)
+                    for i, word in enumerate(words):
+                        current_word_chunk += word
+                        words_in_chunk += 1
+                        
+                        # Add space after word (except for last word)
+                        if i < len(words) - 1:
+                            current_word_chunk += " "
+                        
+                        # Send chunk when we reach desired chunk size or last word
+                        if words_in_chunk >= settings.STREAMING_CHUNK_SIZE or i == len(words) - 1:
+                            delay_seconds = settings.STREAMING_DELAY_MS / 1000.0
+                            
+                            response_obj = StreamingChatResponse(
+                                content=current_word_chunk,
+                                is_complete=False,
+                                model=current_model
+                            )
+                            logger.debug(f"Yielding word chunk ({words_in_chunk} words): '{current_word_chunk}'")
+                            yield response_obj
+                            await asyncio.sleep(delay_seconds)
+                            current_word_chunk = ""
+                            words_in_chunk = 0
                 else:
                     logger.warning(f"Chunk #{chunk_count} has no text content")
             
@@ -191,4 +207,4 @@ Always format your response using rich markdown to make the summary clear and sc
 
         except Exception as e:
             logger.error(f"Unexpected error in chat_completion_stream: {str(e)}", exc_info=True)
-            raise OpenAIServiceException(f"Failed to get streaming chat completion: {str(e)}", 500)
+            raise GeminiServiceException(f"Failed to get streaming chat completion: {str(e)}", 500)

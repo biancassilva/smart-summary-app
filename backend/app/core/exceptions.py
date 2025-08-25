@@ -14,8 +14,8 @@ class CustomHTTPException(HTTPException):
         self.error_code = error_code
 
 
-class OpenAIServiceException(Exception):
-    """Exception raised by OpenAI service operations"""
+class GeminiServiceException(Exception):
+    """Exception raised by Gemini service operations"""
 
     def __init__(self, message: str, status_code: int = 500):
         self.message = message
@@ -37,17 +37,17 @@ async def custom_http_exception_handler(request: Request, exc: CustomHTTPExcepti
     )
 
 
-async def openai_service_exception_handler(
-    request: Request, exc: OpenAIServiceException
+async def gemini_service_exception_handler(
+    request: Request, exc: GeminiServiceException
 ):
-    """Handle OpenAI service exceptions"""
-    logger.error(f"OpenAI service error: {exc.message}")
+    """Handle Gemini service exceptions"""
+    logger.error(f"Gemini service error: {exc.message}")
     return JSONResponse(
         status_code=exc.status_code,
         content={
             "error": {
                 "message": exc.message,
-                "code": "OPENAI_SERVICE_ERROR",
+                "code": "GEMINI_SERVICE_ERROR",
                 "status_code": exc.status_code,
             }
         },

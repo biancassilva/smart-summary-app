@@ -5,7 +5,7 @@ from typing import AsyncGenerator
 from app.api.dependencies import get_gemini_service
 from app.services.gemini_service import GeminiService
 from app.schemas.chat import ChatRequest, ChatResponse, StreamingChatResponse
-from app.core.exceptions import OpenAIServiceException
+from app.core.exceptions import GeminiServiceException
 import logging
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ async def chat_completion(
             message="Chat completion successful",
         )
 
-    except OpenAIServiceException as e:
+    except GeminiServiceException as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
 
@@ -82,8 +82,8 @@ async def chat_completion_stream(
                 logger.info("Sending [DONE] signal")
                 yield f"id: {chunk_count + 1}\nevent: done\ndata: [DONE]\n\n"
 
-            except OpenAIServiceException as e:
-                logger.error(f"OpenAI service exception in streaming: {e.message}")
+            except GeminiServiceException as e:
+                logger.error(f"Gemini service exception in streaming: {e.message}")
                 error_data = {
                     "error": {"message": e.message, "status_code": e.status_code}
                 }

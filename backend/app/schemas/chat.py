@@ -20,7 +20,7 @@ class ChatRequest(BaseModel):
     conversation_history: List[ChatMessage] = Field(
         default=[], description="Previous messages"
     )
-    model: Optional[str] = Field(default=None, description="OpenAI model to use")
+    model: Optional[str] = Field(default=None, description="Gemini model to use")
     temperature: Optional[float] = Field(
         default=None, ge=0.0, le=2.0, description="Response creativity"
     )

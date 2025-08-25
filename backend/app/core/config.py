@@ -9,9 +9,9 @@ load_dotenv()
 class Settings(BaseSettings):
     # API Configuration
     API_V1_PREFIX: str = "/api/v1"
-    PROJECT_NAME: str = "FastAPI Backend"
+    PROJECT_NAME: str = "Smart Summary App - Backend API"
     VERSION: str = "1.0.0"
-    DESCRIPTION: str = "Scalable FastAPI backend with OpenAI integration"
+    DESCRIPTION: str = "Scalable FastAPI backend with Google Gemini AI integration for intelligent text summarization"
 
     # Environment
     ENVIRONMENT: str = "development"
@@ -36,8 +36,8 @@ class Settings(BaseSettings):
     GEMINI_TEMPERATURE: float = 0.7
     
     # Streaming Configuration
-    STREAMING_CHUNK_SIZE: int = 3  # Words per chunk (optimized for better flow)
-    STREAMING_DELAY_MS: int = 25   # Delay between chunks in milliseconds (reduced for better UX)
+    STREAMING_CHUNK_SIZE: int = 2  # Words per chunk (optimized for word-by-word effect)
+    STREAMING_DELAY_MS: int = 50   # Delay between chunks in milliseconds (human-like typing speed)
 
     # Logging
     LOG_LEVEL: str = "INFO"
