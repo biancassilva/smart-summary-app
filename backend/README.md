@@ -1,331 +1,210 @@
-# EasyMate Backend API
+# FastAPI Backend with OpenAI Integration
 
-A scalable, production-ready text summarization API built with FastAPI, PostgreSQL, Redis, and OpenAI. The API provides asynchronous text summarization capabilities with comprehensive monitoring, rate limiting, and security features.
+A scalable FastAPI backend application with OpenAI integration and server-side streaming capabilities.
 
-## 🚀 Features
+## Features
 
-- **Text Summarization**: AI-powered text summarization using OpenAI GPT models
-- **Asynchronous Processing**: Background task processing with Celery
-- **RESTful API**: Clean REST endpoints with OpenAPI documentation
-- **Database Persistence**: PostgreSQL storage with SQLAlchemy ORM
-- **Caching**: Redis-based caching and session management
-- **Security**: JWT authentication, rate limiting, and CORS protection
-- **Monitoring**: Prometheus metrics and structured logging
-- **Scalability**: Horizontal scaling support with load balancing
+- 🚀 FastAPI with async/await support
+- 🤖 OpenAI GPT integration with streaming
+- 📡 Server-Sent Events (SSE) for real-time responses
+- 🏗️ Modular, scalable architecture
+- 🔧 Comprehensive error handling
+- 📋 Request/response validation with Pydantic
+- 🌐 CORS support for frontend integration
+- 📊 Health check endpoints
+- 🔒 Environment-based configuration
 
-## 🏗️ Architecture
-
-### Core Components
+## Project Structure
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   FastAPI App   │    │   PostgreSQL    │    │      Redis      │
-│                 │    │   Database      │    │   Cache/Queue   │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         │                       │                       │
-         ▼                       ▼                       ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   Celery       │    │   OpenAI API    │    │   Monitoring    │
-│   Workers      │    │   Integration   │    │   & Logging     │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+fastapi-backend/
+├── app/
+│   ├── main.py              # Application entry point
+│   ├── core/
+│   │   ├── config.py        # Configuration settings
+│   │   └── exceptions.py    # Custom exception handlers
+│   ├── api/
+│   │   ├── dependencies.py  # Dependency injection
+│   │   └── v1/
+│   │       ├── router.py    # API router
+│   │       └── endpoints/   # API endpoints
+│   ├── services/
+│   │   └── openai_service.py # OpenAI integration
+│   └── schemas/
+│       ├── chat.py          # Chat-related models
+│       └── common.py        # Common response models
+├── requirements.txt
+├── .env.example
+└── README.md
 ```
 
-### Technology Stack
+## Setup
 
-- **Framework**: FastAPI 0.104.1
-- **Database**: PostgreSQL with SQLAlchemy 2.0
-- **Cache/Queue**: Redis 5.0
-- **Task Queue**: Celery 5.3
-- **AI Service**: OpenAI API
-- **Authentication**: JWT with python-jose
-- **Monitoring**: Prometheus metrics
-- **Logging**: Structured logging with structlog
-
-### Key Assumptions
-
-1. **Async-First**: Built with async/await patterns for high concurrency
-2. **Microservices Ready**: Designed for containerization and horizontal scaling
-3. **Event-Driven**: Uses background tasks for long-running operations
-4. **Stateless**: API instances can be scaled horizontally
-5. **Database-First**: PostgreSQL as the primary data store
-
-## 🛠️ Setup Instructions
-
-### Prerequisites
-
-- Python 3.8+
-- PostgreSQL 12+
-- Redis 6+
-- OpenAI API key
-
-### Environment Variables
-
-Create a `.env` file in the backend directory:
+1. **Clone and setup environment:**
 
 ```bash
-# API Settings
-DEBUG=false
-SECRET_KEY=your-secret-key-here
+git clone <repository>
+cd backend
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
 
-# Database
-DATABASE_URL=postgresql://user:password@localhost:5432/easymate
-DATABASE_URL_TEST=postgresql://user:password@localhost:5432/easymate_test
+2. **Environment configuration:**
 
-# Redis
-REDIS_URL=redis://localhost:6379/0
-CELERY_BROKER_URL=redis://localhost:6379/1
-CELERY_RESULT_BACKEND=redis://localhost:6379/2
+```bash
+cp .env.example .env
+# Edit .env with your OpenAI API key
+```
 
-# OpenAI
-OPENAI_API_KEY=your-openai-api-key
+3. **Run the application:**
+
+```bash
+# Activate virtual environment first
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Run with uvicorn (recommended)
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# Or run directly (alternative)
+python app/main.py
+```
+
+## API Endpoints
+
+### Health Checks
+
+- `GET /` - Root endpoint
+- `GET /api/v1/health` - Detailed health check
+- `GET /api/v1/health/ready` - Readiness probe
+- `GET /api/v1/health/live` - Liveness probe
+
+### Chat Endpoints
+
+- `POST /api/v1/chat/completions` - Standard chat completion
+- `POST /api/v1/chat/stream` - Streaming chat completion
+
+### Example Usage
+
+**Standard Chat:**
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Hello, how are you?",
+    "conversation_history": [],
+    "stream": false
+  }'
+```
+
+**Streaming Chat:**
+
+```bash
+curl -X POST "http://localhost:8000/api/v1/chat/stream" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "message": "Tell me a story",
+    "conversation_history": [],
+    "temperature": 0.8
+  }'
+```
+
+## Configuration
+
+Key environment variables in `.env`:
+
+```env
+OPENAI_API_KEY=your_openai_api_key_here
+ENVIRONMENT=development
 OPENAI_MODEL=gpt-3.5-turbo
-OPENAI_MAX_TOKENS=500
-OPENAI_TEMPERATURE=0.3
-
-# Security
-ALLOWED_HOSTS=["*"]
-RATE_LIMIT_PER_MINUTE=10
-RATE_LIMIT_PER_HOUR=100
+OPENAI_TEMPERATURE=0.7
+OPENAI_MAX_TOKENS=1000
+ALLOWED_ORIGINS=["http://localhost:3000", "http://localhost:3003"]
 ```
 
-### Installation
+## Architecture Highlights
 
-1. **Clone the repository and navigate to backend:**
+### Scalability Features:
 
-   ```bash
-   cd backend
-   ```
+- **Modular structure** - Easy to add new features
+- **Dependency injection** - Clean service management
+- **Async/await** - High concurrency support
+- **Pydantic models** - Type safety and validation
+- **Exception handling** - Robust error management
+- **Configuration management** - Environment-based settings
 
-2. **Create a virtual environment:**
+### Streaming Implementation:
 
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   ```
+- Server-Sent Events (SSE) format
+- Real-time response delivery
+- Proper error handling in streams
+- Client-friendly chunk formatting
 
-3. **Install dependencies:**
+## Development
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+**Add new endpoints:**
 
-4. **Set up PostgreSQL database:**
+1. Create endpoint file in `app/api/v1/endpoints/`
+2. Define Pydantic models in `app/schemas/`
+3. Add business logic in `app/services/`
+4. Register router in `app/api/v1/router.py`
 
-   ```bash
-   # Create database
-   createdb easymate
+**Testing:**
 
-   # Run migrations (if using Alembic)
-   alembic upgrade head
-   ```
+- Interactive docs: http://localhost:8000/docs
+- Alternative docs: http://localhost:8000/redoc
 
-5. **Start Redis:**
+## Production Deployment
 
-   ```bash
-   redis-server
-   ```
+1. Set `ENVIRONMENT=production` in `.env`
+2. Configure proper `ALLOWED_ORIGINS`
+3. Set up reverse proxy (nginx/Apache)
+4. Use process manager (systemd/supervisor)
+5. Configure logging and monitoring
 
-6. **Start Celery worker (in a separate terminal):**
+## Frontend Integration
 
-   ```bash
-   celery -A app.celery_app worker --loglevel=info
-   ```
+The API is designed to work seamlessly with modern frontend frameworks:
 
-7. **Run the application:**
-   ```bash
-   uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-   ```
+**JavaScript/TypeScript Example:**
 
-### Docker Setup (Alternative)
+```javascript
+// Streaming chat
+const response = await fetch("/api/v1/chat/stream", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    message: "Hello!",
+    conversation_history: [],
+  }),
+});
 
-```bash
-# Build and run with Docker Compose
-docker-compose up --build
+const reader = response.body.getReader();
+const decoder = new TextDecoder();
+
+while (true) {
+  const { value, done } = await reader.read();
+  if (done) break;
+
+  const chunk = decoder.decode(value);
+  const lines = chunk.split("\n");
+
+  for (const line of lines) {
+    if (line.startsWith("data: ")) {
+      const data = line.slice(6);
+      if (data === "[DONE]") return;
+
+      try {
+        const parsed = JSON.parse(data);
+        if (parsed.content) {
+          console.log(parsed.content); // Handle streaming content
+        }
+      } catch (e) {
+        // Handle parsing errors
+      }
+    }
+  }
+}
 ```
-
-## 📚 API Documentation
-
-Once running, access the API documentation at:
-
-- **Swagger UI**: `http://localhost:8000/api/v1/docs`
-- **ReDoc**: `http://localhost:8000/api/v1/redoc`
-- **OpenAPI JSON**: `http://localhost:8000/api/v1/openapi.json`
-
-### Key Endpoints
-
-- `POST /api/v1/summaries/` - Create a new summary request
-- `GET /api/v1/summaries/{id}` - Get summary by ID
-- `GET /api/v1/summaries/` - List summaries with pagination
-- `GET /api/v1/health` - Health check endpoint
-
-## 🔮 Future Improvements
-
-### Short-term (1-3 months)
-
-- **User Authentication**: Implement JWT-based user management
-- **File Upload Support**: Accept PDF, DOCX, and TXT files
-- **Batch Processing**: Process multiple documents simultaneously
-- **Summary Templates**: Customizable summary formats and styles
-- **Webhook Support**: Notify external systems of completion
-
-### Medium-term (3-6 months)
-
-- **Multi-language Support**: Summarization in multiple languages
-- **Advanced AI Models**: Support for GPT-4, Claude, and other models
-- **Content Analysis**: Extract key topics, sentiment, and entities
-- **API Versioning**: Proper API versioning strategy
-- **GraphQL Support**: Alternative to REST endpoints
-
-### Long-term (6+ months)
-
-- **Real-time Processing**: WebSocket support for live updates
-- **Custom Training**: Fine-tune models on domain-specific data
-- **Analytics Dashboard**: Usage metrics and insights
-- **Multi-tenant Support**: SaaS-ready architecture
-- **Edge Computing**: Deploy models closer to users
-
-## 🚀 Scaling Considerations
-
-### Horizontal Scaling
-
-- **Load Balancer**: Use Nginx or HAProxy for traffic distribution
-- **Multiple API Instances**: Deploy multiple FastAPI instances
-- **Database Sharding**: Partition data across multiple databases
-- **Redis Cluster**: Distribute cache across multiple Redis nodes
-
-### Performance Optimization
-
-- **Connection Pooling**: Optimize database and Redis connections
-- **Caching Strategy**: Implement multi-level caching (Redis + in-memory)
-- **Async Processing**: Use Celery for CPU-intensive tasks
-- **CDN Integration**: Serve static content through CDN
-
-### Infrastructure
-
-- **Container Orchestration**: Kubernetes for container management
-- **Auto-scaling**: Implement auto-scaling based on metrics
-- **Monitoring**: Prometheus + Grafana for observability
-- **Log Aggregation**: Centralized logging with ELK stack
-
-## 🔒 Security Considerations
-
-### Authentication & Authorization
-
-- **JWT Tokens**: Secure token-based authentication
-- **Role-based Access**: Implement user roles and permissions
-- **API Keys**: Support for API key authentication
-- **OAuth Integration**: Third-party authentication providers
-
-### Data Protection
-
-- **Input Validation**: Comprehensive input sanitization
-- **Rate Limiting**: Prevent abuse and DDoS attacks
-- **CORS Configuration**: Restrict cross-origin requests
-- **SQL Injection Protection**: Use parameterized queries
-
-### Infrastructure Security
-
-- **HTTPS Only**: Enforce TLS encryption
-- **Secrets Management**: Secure environment variable handling
-- **Network Security**: VPC and firewall configuration
-- **Regular Updates**: Keep dependencies updated
-
-### Compliance
-
-- **GDPR Compliance**: Data privacy and right to deletion
-- **SOC 2**: Security and availability controls
-- **Data Encryption**: Encrypt data at rest and in transit
-- **Audit Logging**: Comprehensive activity logging
-
-## 📊 Monitoring & Observability
-
-### Metrics
-
-- **Application Metrics**: Request rate, response time, error rate
-- **Business Metrics**: Summary creation rate, processing time
-- **Infrastructure Metrics**: CPU, memory, disk usage
-- **Custom Metrics**: OpenAI API usage, cost tracking
-
-### Logging
-
-- **Structured Logging**: JSON-formatted logs for easy parsing
-- **Log Levels**: Configurable logging levels
-- **Correlation IDs**: Track requests across services
-- **Centralized Logging**: Aggregate logs for analysis
-
-### Alerting
-
-- **Error Rate Alerts**: Notify on high error rates
-- **Performance Alerts**: Alert on slow response times
-- **Infrastructure Alerts**: Monitor system resources
-- **Business Alerts**: Track API usage and costs
-
-## 🧪 Testing
-
-### Test Types
-
-- **Unit Tests**: Test individual functions and classes
-- **Integration Tests**: Test API endpoints and database operations
-- **End-to-End Tests**: Test complete user workflows
-- **Performance Tests**: Load testing and stress testing
-
-### Running Tests
-
-```bash
-# Run all tests
-pytest
-
-# Run with coverage
-pytest --cov=app
-
-# Run specific test file
-pytest tests/test_summary_service.py
-```
-
-## 📦 Deployment
-
-### Production Checklist
-
-- [ ] Environment variables configured
-- [ ] Database migrations applied
-- [ ] SSL certificates installed
-- [ ] Monitoring configured
-- [ ] Backup strategy implemented
-- [ ] CI/CD pipeline set up
-- [ ] Load balancer configured
-- [ ] Auto-scaling policies defined
-
-### Deployment Options
-
-- **Cloud Platforms**: AWS, GCP, Azure
-- **Container Platforms**: Docker, Kubernetes
-- **Serverless**: AWS Lambda, Google Cloud Functions
-- **Traditional**: VPS, dedicated servers
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Ensure all tests pass
-6. Submit a pull request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-For support and questions:
-
-- Create an issue in the repository
-- Check the API documentation
-- Review the logs for error details
-- Contact the development team
-
----
-
-**Note**: This is a production-ready backend API designed for scalability and security. Always review security configurations and follow best practices for your specific deployment environment.
-
