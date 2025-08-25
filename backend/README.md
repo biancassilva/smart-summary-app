@@ -506,12 +506,14 @@ sudo systemctl start smart-summary-backend
 The backend includes convenient build scripts:
 
 **`build.sh`** - Sets up the development environment:
+
 - Creates virtual environment
 - Installs dependencies
 - Sets up configuration files
 - Tests the installation
 
 **`start.sh`** - Starts the development server:
+
 - Activates virtual environment
 - Validates configuration
 - Starts uvicorn with reload for development
@@ -521,30 +523,34 @@ The backend includes convenient build scripts:
 **Common Build Issues:**
 
 1. **Permission denied for build scripts:**
+
    ```bash
    chmod +x build.sh start.sh
    ```
 
 2. **Virtual environment not found:**
+
    ```bash
    # Run build script first
    ./build.sh
    ```
 
 3. **Missing GEMINI_API_KEY:**
+
    ```bash
    # Check your .env file
    cat .env | grep GEMINI_API_KEY
-   
+
    # Add your API key
    echo "GEMINI_API_KEY=your_key_here" >> .env
    ```
 
 4. **Port 8000 already in use:**
+
    ```bash
    # Kill existing process
    lsof -ti:8000 | xargs kill -9
-   
+
    # Or use different port
    uvicorn app.main:app --port 8001
    ```
@@ -552,6 +558,7 @@ The backend includes convenient build scripts:
 **Docker Build Issues:**
 
 1. **Docker not installed:**
+
    ```bash
    # Install Docker Desktop or Docker Engine
    # Then verify installation
@@ -559,16 +566,18 @@ The backend includes convenient build scripts:
    ```
 
 2. **Build fails during pip install:**
+
    ```bash
    # Clean build (no cache)
    docker build --no-cache -t smart-summary-backend .
    ```
 
 3. **Container fails to start:**
+
    ```bash
    # Check logs
    docker logs <container_id>
-   
+
    # Run interactively for debugging
    docker run -it smart-summary-backend /bin/bash
    ```
@@ -721,6 +730,83 @@ export async function streamSummarization({
 ### License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+## 🌐 Deployment
+
+### Render Deployment
+
+The backend includes a `render.yaml` configuration for easy deployment on Render:
+
+**1. Environment Variables Setup:**
+
+Set these environment variables in your Render service:
+
+```bash
+# Required (Set as Secret)
+GEMINI_API_KEY=your_gemini_api_key_here
+
+# Optional (good defaults)
+ENVIRONMENT=production
+DEBUG=false
+GEMINI_MODEL=gemini-1.5-flash
+GEMINI_TEMPERATURE=0.7
+GEMINI_MAX_TOKENS=100000
+STREAMING_CHUNK_SIZE=2
+STREAMING_DELAY_MS=50
+LOG_LEVEL=INFO
+```
+
+**2. Deploy Command:**
+
+Render will automatically use:
+
+```bash
+# Build command
+pip install -r requirements.txt
+
+# Start command
+uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+**3. Troubleshooting Render Deployment:**
+
+- **Configuration Error**: The backend now ignores unknown environment variables, so old configs won't cause errors
+- **Missing GEMINI_API_KEY**: Set this as a secret environment variable in Render dashboard
+- **Port Issues**: Render automatically sets `$PORT` - no configuration needed
+- **Build Failures**: Check that `requirements.txt` is in the root of your service directory
+
+### Other Deployment Platforms
+
+**Vercel (Serverless):**
+
+```bash
+# Install Vercel CLI
+npm i -g vercel
+
+# Deploy
+vercel --prod
+```
+
+**Railway:**
+
+```bash
+# Connect your repo and Railway will auto-deploy
+# Set GEMINI_API_KEY in environment variables
+```
+
+**Heroku:**
+
+```bash
+# Create Procfile
+echo "web: uvicorn app.main:app --host 0.0.0.0 --port \$PORT" > Procfile
+
+# Deploy
+heroku create smart-summary-backend
+heroku config:set GEMINI_API_KEY=your_key_here
+git push heroku main
+```
 
 ---
 
