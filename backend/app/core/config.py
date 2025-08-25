@@ -1,6 +1,6 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from typing import List
-import os
+from typing import List, Union
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -23,8 +23,8 @@ class Settings(BaseSettings):
     ENVIRONMENT: str = "development"
     DEBUG: bool = ENVIRONMENT == "development"
 
-    # CORS
-    ALLOWED_ORIGINS: List[str] = [
+    # CORS - can be set as JSON string in environment
+    ALLOWED_ORIGINS: Union[List[str], str] = [
         "http://localhost:3000",
         "http://localhost:3003",
         "http://localhost:3004",
@@ -34,6 +34,18 @@ class Settings(BaseSettings):
         "http://127.0.0.1:3004",
         "http://127.0.0.1:8080",
     ]
+    
+    @property
+    def cors_origins(self) -> List[str]:
+        """Parse ALLOWED_ORIGINS from string or list"""
+        if isinstance(self.ALLOWED_ORIGINS, str):
+            try:
+                # Try to parse as JSON string
+                return json.loads(self.ALLOWED_ORIGINS)
+            except json.JSONDecodeError:
+                # If not JSON, split by comma and clean up
+                return [origin.strip() for origin in self.ALLOWED_ORIGINS.split(",") if origin.strip()]
+        return self.ALLOWED_ORIGINS
 
     # Gemini Configuration
     GEMINI_API_KEY: str

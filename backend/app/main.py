@@ -50,7 +50,7 @@ app = FastAPI(
 # Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"] if settings.ENVIRONMENT == "development" else settings.ALLOWED_ORIGINS,
+    allow_origins=["*"] if settings.ENVIRONMENT == "development" else settings.cors_origins,
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
@@ -82,6 +82,17 @@ async def root():
         "environment": settings.ENVIRONMENT,
         "docs": "/docs",
         "health": f"{settings.API_V1_PREFIX}/health",
+    }
+
+
+# Debug endpoint for CORS configuration
+@app.get("/cors-debug")
+async def cors_debug():
+    """Debug endpoint to check CORS configuration"""
+    return {
+        "allowed_origins": settings.cors_origins,
+        "environment": settings.ENVIRONMENT,
+        "raw_allowed_origins": settings.ALLOWED_ORIGINS,
     }
 
 
