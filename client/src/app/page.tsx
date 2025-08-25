@@ -91,8 +91,8 @@ function ChatPage() {
         >
           {isPanelOpen && (
             <div className="bg-white border-l border-gray-200 h-full flex flex-col">
-              <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gray-50">
-                <h2 className="text-2xl font-bold text-gray-900">
+              <div className="flex items-center justify-between py-4 px-4 border-b border-gray-200 bg-gray-50">
+                <h2 className="text-lg font-bold text-gray-900">
                   Summary Result
                 </h2>
                 <button
@@ -115,7 +115,7 @@ function ChatPage() {
                   </svg>
                 </button>
               </div>
-              <div className="flex-1 p-6 overflow-y-auto">
+              <div className="flex-1 p-4 overflow-y-auto">
                 <ResponsePanel
                   response={response}
                   isStreaming={isStreaming}
