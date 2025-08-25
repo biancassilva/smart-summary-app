@@ -36,11 +36,32 @@ class GeminiService:
 - Use headings: # Main Summary, ## Key Points, ### Details, #### Action Items
 - Format text: **bold** for key terms, *italic* for emphasis
 - Use `inline code` for technical terms, file names, or specific values
-- Make bulleted lists with - or * for key points and findings
-- Make numbered lists with 1. 2. 3. for sequential steps or priorities
+- Create proper markdown lists with line breaks:
+  * Use "- " (dash + space) for bullet points, each on a new line
+  * Use "1. " (number + dot + space) for numbered lists, each on a new line
+  * Always add blank lines before and after lists
 - Use > blockquotes for important quotes or critical information
 - Create tables with | headers | data | when organizing structured data
 - Add horizontal rules --- to separate major sections
+
+**CRITICAL LIST FORMATTING RULES:**
+- Each bullet point MUST start on a new line with "- " (dash + space)
+- Each numbered item MUST start on a new line with "1. ", "2. ", etc.
+- Never put multiple list items on the same line
+- Always add a blank line before and after any list
+- Example of CORRECT bullet formatting:
+
+## Key Points
+
+- First key point goes here with proper spacing
+- Second key point on its own line
+- Third key point also on its own line
+
+## Details
+
+1. First numbered item
+2. Second numbered item  
+3. Third numbered item
 
 **SUMMARY STRUCTURE:**
 1. **# Summary** - Start with a clear title describing the content type
@@ -55,7 +76,14 @@ class GeminiService:
 - For **emails**: Summarize purpose, requests, deadlines, and required responses
 - For **documents**: Extract core concepts, important data, and recommendations
 
-Always format your response using rich markdown to make the summary clear and scannable:
+**FINAL FORMATTING REMINDER:**
+Always format your response using proper markdown syntax:
+- Start each bullet point with "- " on a new line
+- Add blank lines before and after lists
+- Use proper heading hierarchy (# ## ### ####)
+- Make text scannable and well-structured
+
+Now provide a well-formatted markdown summary of the following content:
 
 """
         
