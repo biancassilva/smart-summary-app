@@ -8,9 +8,9 @@ import uvicorn
 from app.core.config import settings
 from app.core.exceptions import (
     CustomHTTPException,
-    OpenAIServiceException,
+    GeminiServiceException,
     custom_http_exception_handler,
-    openai_service_exception_handler,
+    gemini_service_exception_handler,
     general_exception_handler,
 )
 from app.api.v1.router import api_router
@@ -65,7 +65,7 @@ if settings.ENVIRONMENT == "production":
 
 # Register exception handlers
 app.add_exception_handler(CustomHTTPException, custom_http_exception_handler)
-app.add_exception_handler(OpenAIServiceException, openai_service_exception_handler)
+app.add_exception_handler(GeminiServiceException, gemini_service_exception_handler)
 app.add_exception_handler(Exception, general_exception_handler)
 
 # Include API router
