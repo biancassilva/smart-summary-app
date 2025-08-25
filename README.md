@@ -12,34 +12,34 @@ Smart Summary App is a modern, full-stack application that provides AI-powered t
 - **Responsive Design**: Works perfectly on all devices
 - **TypeScript**: Full type safety and better development experience
 
-### Backend (FastAPI + OpenAI)
+### Backend (FastAPI + Google Gemini)
 
 - **FastAPI Framework**: High-performance, modern Python web framework
-- **OpenAI Integration**: Powered by GPT-4 for intelligent summarization
+- **Google Gemini Integration**: Powered by Gemini 1.5 Flash for intelligent summarization
 - **Server-Side Streaming**: Real-time summary generation with SSE
-- **SQLite Development**: Easy setup with SQLite (PostgreSQL for production)
-- **Comprehensive Logging**: Structured logging with structlog
+- **Word-by-Word Streaming**: Human-like typing animation for better UX
+- **Comprehensive Logging**: Structured logging for monitoring and debugging
 - **Health Monitoring**: Built-in health checks and monitoring
 - **Scalable Architecture**: Designed for easy scaling and maintenance
 
 ## 🏗️ Architecture
 
 ```
-easymate/
+smart-summary-app/
 ├── client/                 # Next.js Frontend
 │   ├── src/app/           # App router components
-│   ├── public/            # Static assets
+│   ├── src/components/    # React components
+│   ├── src/hooks/         # Custom React hooks
+│   ├── src/lib/           # Utility libraries
+│   ├── src/types/         # TypeScript type definitions
 │   └── package.json       # Frontend dependencies
 ├── backend/               # FastAPI Backend
 │   ├── app/               # Application code
 │   │   ├── api/           # API endpoints
 │   │   ├── core/          # Configuration & utilities
-│   │   ├── db/            # Database models & connections
-│   │   ├── services/      # Business logic
+│   │   ├── services/      # Business logic (Gemini service)
 │   │   └── schemas/       # Data validation
-│   ├── tests/             # Test suite
-│   ├── install.sh         # Easy installation script
-│   └── start.sh           # Startup script
+│   └── requirements.txt   # Python dependencies
 └── README.md              # This file
 ```
 
@@ -47,8 +47,7 @@ easymate/
 
 - **Node.js 18+** and npm
 - **Python 3.8+** and pip
-- **OpenAI API Key** (required for summarization)
-- **PostgreSQL** (optional, for production only)
+- **Google Gemini API Key** (required for AI summarization)
 
 ## 🚀 Quick Start
 
@@ -56,29 +55,30 @@ easymate/
 
 ```bash
 git clone <repository-url>
-cd easymate
+cd smart-summary-app
 ```
 
-### 2. Start the Backend (Easy Installation)
+### 2. Start the Backend
 
 ```bash
 cd backend
 
-# Run the easy installation script (avoids compilation issues)
-./install.sh
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env and add your GEMINI_API_KEY
 
 # Start the backend
-./start.sh
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The backend will be available at `http://localhost:8000`
-
-**What the installation script does:**
-
-- Creates a virtual environment
-- Installs dependencies step by step (avoiding problematic packages)
-- Uses SQLite for easy development (no database setup required)
-- Guides you through configuration
 
 ### 3. Start the Frontend
 
@@ -105,32 +105,19 @@ The frontend will be available at `http://localhost:3000`
 
 ### Backend Environment Variables
 
-The installation script will create a `.env` file automatically. You just need to add your OpenAI API key:
+Create a `.env` file in the backend directory with the following:
 
 ```bash
 # Required
-OPENAI_API_KEY=your-openai-api-key-here
+GEMINI_API_KEY=your-gemini-api-key-here
 
 # Optional (with good defaults)
-DEBUG=false
-HOST=0.0.0.0
-PORT=8000
-USE_SQLITE=true  # Uses SQLite for easy development
+GEMINI_MODEL=gemini-1.5-flash
+GEMINI_TEMPERATURE=0.7
+GEMINI_MAX_OUTPUT_TOKENS=8192
+ENVIRONMENT=development
+DEBUG=true
 ```
-
-### Database Configuration
-
-**Development (Default)**: SQLite
-
-- No installation required
-- No compilation issues
-- File-based database
-- Perfect for development
-
-**Production**: PostgreSQL
-
-- Set `USE_SQLITE=false` in `.env`
-- Update `DATABASE_URL` to your PostgreSQL connection string
 
 ## 🐳 Docker Development
 
@@ -159,10 +146,10 @@ Once the backend is running, you can access:
 
 ### Key Endpoints
 
-- `POST /api/v1/summaries/stream` - Create summary for streaming
-- `GET /api/v1/summaries/{id}/stream` - Stream summary generation
-- `GET /api/v1/summaries/{id}` - Get summary by ID
-- `GET /api/v1/summaries/` - List all summaries
+- `POST /api/v1/chat/stream` - Streaming text summarization (Primary endpoint)
+- `GET /api/v1/health` - Health check endpoint
+- `GET /api/v1/health/ready` - Readiness probe
+- `GET /api/v1/health/live` - Liveness probe
 
 ## 🔍 Testing
 
@@ -197,10 +184,10 @@ npm run test:coverage
 1. **Set Production Environment Variables**:
 
    ```bash
+   ENVIRONMENT=production
    DEBUG=false
-   USE_SQLITE=false
-   DATABASE_URL=your-production-db-url
-   SECRET_KEY=your-production-secret-key
+   GEMINI_API_KEY=your-production-gemini-key
+   ALLOWED_ORIGINS=["https://yourdomain.com"]
    ```
 
 2. **Use Production Server**:
@@ -212,8 +199,8 @@ npm run test:coverage
 3. **Docker Deployment**:
 
    ```bash
-   docker build -t easymate-backend .
-   docker run -p 8000:8000 easymate-backend
+   docker build -t smart-summary-backend .
+   docker run -p 8000:8000 smart-summary-backend
    ```
 
 ### Frontend Deployment
@@ -232,7 +219,7 @@ npm run test:coverage
 - **Rate Limiting**: Implement rate limiting for production use
 - **Authentication**: Add JWT authentication for protected endpoints
 - **HTTPS**: Always use HTTPS in production
-- **API Keys**: Secure storage of OpenAI API keys
+- **API Keys**: Secure storage of Google Gemini API keys
 
 ## 📊 Monitoring
 
@@ -253,16 +240,12 @@ The backend uses structured logging (JSON) for easy parsing and monitoring:
 
 ### Common Issues
 
-1. **Installation compilation errors**:
+1. **Backend won't start**:
 
-   - Use `./install.sh` instead of `pip install -r requirements.txt`
-   - This avoids problematic packages like `asyncpg`
-
-2. **Backend won't start**:
-
-   - Check if `.env` file exists and has required variables
+   - Check if `.env` file exists and has `GEMINI_API_KEY`
    - Ensure port 8000 is available
-   - Run `./install.sh` first if virtual environment is missing
+   - Verify virtual environment is activated
+   - Check that all dependencies are installed
 
 3. **Frontend can't connect to backend**:
 
@@ -270,17 +253,18 @@ The backend uses structured logging (JSON) for easy parsing and monitoring:
    - Check CORS configuration
    - Ensure no firewall blocking the connection
 
-4. **OpenAI API errors**:
-   - Verify your API key is correct
-   - Check API key has sufficient credits
+2. **Google Gemini API errors**:
+   - Verify your Gemini API key is correct
+   - Check API key has proper permissions
    - Ensure you're not hitting rate limits
+   - Verify you have access to Gemini 1.5 Flash model
 
 ### Getting Help
 
 - Check the logs in the backend terminal
-- Review the API documentation at `/docs`
-- Check the health endpoint for system status
-- See `backend/TROUBLESHOOTING.md` for detailed solutions
+- Review the API documentation at `http://localhost:8000/docs`
+- Check the health endpoint at `http://localhost:8000/api/v1/health`
+- See the backend README for detailed configuration options
 
 ## 🤝 Contributing
 
@@ -305,7 +289,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - **FastAPI** for the excellent Python web framework
 - **Next.js** for the powerful React framework
-- **OpenAI** for the AI capabilities
+- **Google Gemini** for the AI capabilities
 - **Tailwind CSS** for the beautiful UI components
 
 ---
