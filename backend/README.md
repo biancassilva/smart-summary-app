@@ -1,52 +1,69 @@
-# FastAPI Backend with OpenAI Integration
+# Backend API
 
-A scalable FastAPI backend application with OpenAI integration and server-side streaming capabilities.
+A high-performance FastAPI backend application with Google Gemini AI integration, designed for intelligent text summarization with real-time streaming capabilities.
 
 ## Features
 
-- 🚀 FastAPI with async/await support
-- 🤖 OpenAI GPT integration with streaming
-- 📡 Server-Sent Events (SSE) for real-time responses
-- 🏗️ Modular, scalable architecture
-- 🔧 Comprehensive error handling
-- 📋 Request/response validation with Pydantic
-- 🌐 CORS support for frontend integration
-- 📊 Health check endpoints
-- 🔒 Environment-based configuration
+- 🚀 **FastAPI Framework** - High-performance async Python web framework
+- 🤖 **Google Gemini Integration** - Advanced AI text summarization using Gemini 1.5 Flash
+- 📡 **Real-time Streaming** - Server-Sent Events (SSE) for live response delivery
+- 🏗️ **Modular Architecture** - Clean, maintainable, and extensible codebase
+- 🔧 **Robust Error Handling** - Comprehensive exception management and logging
+- 📋 **Type Safety** - Full Pydantic validation for requests and responses
+- 🌐 **CORS Ready** - Configured for seamless frontend integration
+- 📊 **Health Monitoring** - Built-in health check and readiness endpoints
+- 🔒 **Secure Configuration** - Environment-based settings management
+- ⚡ **Performance Optimized** - Streaming chunked responses for better UX
 
 ## Project Structure
 
 ```
-fastapi-backend/
+backend/
 ├── app/
-│   ├── main.py              # Application entry point
+│   ├── main.py              # FastAPI application entry point
 │   ├── core/
-│   │   ├── config.py        # Configuration settings
-│   │   └── exceptions.py    # Custom exception handlers
+│   │   ├── config.py        # Environment configuration and settings
+│   │   └── exceptions.py    # Custom exception handlers and middleware
 │   ├── api/
-│   │   ├── dependencies.py  # Dependency injection
+│   │   ├── dependencies.py  # Dependency injection and common dependencies
 │   │   └── v1/
-│   │       ├── router.py    # API router
-│   │       └── endpoints/   # API endpoints
+│   │       ├── router.py    # Main API router v1
+│   │       └── endpoints/
+│   │           ├── chat.py  # Chat streaming endpoints
+│   │           └── health.py # Health check endpoints
 │   ├── services/
-│   │   └── openai_service.py # OpenAI integration
+│   │   └── gemini_service.py # Google Gemini AI service integration
 │   └── schemas/
-│       ├── chat.py          # Chat-related models
-│       └── common.py        # Common response models
-├── requirements.txt
-├── .env.example
-└── README.md
+│       ├── chat.py          # Chat request/response models
+│       └── common.py        # Shared response schemas
+├── requirements.txt         # Python dependencies
+├── .env.example            # Environment variables template
+├── .env                    # Environment configuration (not in git)
+└── README.md              # This documentation
 ```
 
-## Setup
+## 🚀 Setup Instructions
+
+### Prerequisites
+
+- Python 3.8 or higher
+- pip package manager
+- Google Gemini API key ([Get one here](https://makersuite.google.com/app/apikey))
+
+### Installation
 
 1. **Clone and setup environment:**
 
 ```bash
-git clone <repository>
-cd backend
+# Clone the repository
+git clone <repository-url>
+cd easymate/backend
+
+# Create and activate virtual environment
 python3 -m venv venv
 source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# Upgrade pip and install dependencies
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
@@ -54,21 +71,49 @@ pip install -r requirements.txt
 2. **Environment configuration:**
 
 ```bash
+# Copy the example environment file
 cp .env.example .env
-# Edit .env with your OpenAI API key
+
+# Edit .env file with your configuration
+nano .env  # or use your preferred editor
+```
+
+Required environment variables in `.env`:
+
+```env
+# Google Gemini Configuration
+GEMINI_API_KEY=your_gemini_api_key_here
+GEMINI_MODEL=gemini-1.5-flash
+GEMINI_TEMPERATURE=0.7
+GEMINI_MAX_OUTPUT_TOKENS=8192
+
+# Application Settings
+ENVIRONMENT=development
+DEBUG=true
+
+# CORS Settings (adjust for your frontend)
+ALLOWED_ORIGINS=["http://localhost:3000", "http://localhost:3004"]
 ```
 
 3. **Run the application:**
 
 ```bash
-# Activate virtual environment first
+# Make sure virtual environment is activated
 source venv/bin/activate  # On Windows: venv\Scripts\activate
 
-# Run with uvicorn (recommended)
+# Start the development server (recommended)
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
-# Or run directly (alternative)
+# Alternative: Run directly
 python app/main.py
+```
+
+4. **Verify installation:**
+
+Visit http://localhost:8000/docs to see the interactive API documentation, or check the health endpoint:
+
+```bash
+curl http://localhost:8000/api/v1/health
 ```
 
 ## API Endpoints
@@ -82,129 +127,392 @@ python app/main.py
 
 ### Chat Endpoints
 
-- `POST /api/v1/chat/completions` - Standard chat completion
-- `POST /api/v1/chat/stream` - Streaming chat completion
+- `POST /api/v1/chat/stream` - **Text summarization with streaming** (Primary endpoint)
 
 ### Example Usage
 
-**Standard Chat:**
-
-```bash
-curl -X POST "http://localhost:8000/api/v1/chat/completions" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "Hello, how are you?",
-    "conversation_history": [],
-    "stream": false
-  }'
-```
-
-**Streaming Chat:**
+**Streaming Text Summarization:**
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/chat/stream" \
   -H "Content-Type: application/json" \
   -d '{
-    "message": "Tell me a story",
+    "message": "# Understanding Machine Learning\n\nMachine learning is a subset of artificial intelligence (AI) that provides systems the ability to automatically learn and improve from experience without being explicitly programmed. Machine learning focuses on the development of computer programs that can access data and use it learn for themselves...",
     "conversation_history": [],
-    "temperature": 0.8
+    "temperature": 0.7
   }'
 ```
 
-## Configuration
+**Response Format:**
 
-Key environment variables in `.env`:
+The API returns Server-Sent Events (SSE) with the following format:
 
-```env
-OPENAI_API_KEY=your_openai_api_key_here
-ENVIRONMENT=development
-OPENAI_MODEL=gpt-3.5-turbo
-OPENAI_TEMPERATURE=0.7
-OPENAI_MAX_TOKENS=1000
-ALLOWED_ORIGINS=["http://localhost:3000", "http://localhost:3003"]
+```
+data: {"content": "## Summary", "model": "gemini-1.5-flash", "is_complete": false}
+data: {"content": "\n\nMachine learning is", "model": "gemini-1.5-flash", "is_complete": false}
+data: {"content": " a powerful AI subset...", "model": "gemini-1.5-flash", "is_complete": false}
+data: {"content": "", "model": "gemini-1.5-flash", "is_complete": true, "usage": {"prompt_tokens": 150, "completion_tokens": 85, "total_tokens": 235}}
+data: [DONE]
 ```
 
-## Architecture Highlights
+## 🏗️ Architecture Explanations and Assumptions
 
-### Scalability Features:
+### Core Architecture Principles
 
-- **Modular structure** - Easy to add new features
-- **Dependency injection** - Clean service management
-- **Async/await** - High concurrency support
-- **Pydantic models** - Type safety and validation
-- **Exception handling** - Robust error management
-- **Configuration management** - Environment-based settings
+**1. Layered Architecture:**
 
-### Streaming Implementation:
+```
+Frontend (Next.js) ↔ API Layer ↔ Service Layer ↔ External AI (Gemini)
+```
 
-- Server-Sent Events (SSE) format
-- Real-time response delivery
-- Proper error handling in streams
-- Client-friendly chunk formatting
+**2. Separation of Concerns:**
 
-## Development
+- **API Layer**: Request/response handling, validation, routing
+- **Service Layer**: Business logic, AI integration, data processing
+- **Schema Layer**: Type definitions, validation rules
+- **Configuration Layer**: Environment management, settings
 
-**Add new endpoints:**
+**3. Key Assumptions:**
 
-1. Create endpoint file in `app/api/v1/endpoints/`
-2. Define Pydantic models in `app/schemas/`
-3. Add business logic in `app/services/`
-4. Register router in `app/api/v1/router.py`
+- **Text-focused Processing**: Optimized for article, email, and document summarization
+- **Streaming First**: All AI interactions use streaming for better UX
+- **Stateless Design**: No session management, each request is independent
+- **Markdown Output**: AI responses are formatted in markdown for rich display
+- **Single Model**: Currently uses Gemini 1.5 Flash for optimal speed/quality balance
 
-**Testing:**
+### Design Decisions
 
-- Interactive docs: http://localhost:8000/docs
-- Alternative docs: http://localhost:8000/redoc
+**Streaming Implementation:**
 
-## Production Deployment
+- Uses Server-Sent Events (SSE) for real-time response delivery
+- Chunks responses for immediate user feedback
+- Handles connection drops gracefully
 
-1. Set `ENVIRONMENT=production` in `.env`
-2. Configure proper `ALLOWED_ORIGINS`
-3. Set up reverse proxy (nginx/Apache)
-4. Use process manager (systemd/supervisor)
-5. Configure logging and monitoring
+**Error Management:**
 
-## Frontend Integration
+- Structured error responses with proper HTTP status codes
+- Graceful AI service failure handling
+- Request validation before processing
 
-The API is designed to work seamlessly with modern frontend frameworks:
+**Performance Optimizations:**
 
-**JavaScript/TypeScript Example:**
+- Async/await throughout the application
+- Minimal memory footprint with streaming
+- Efficient token usage tracking
 
-```javascript
-// Streaming chat
-const response = await fetch("/api/v1/chat/stream", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    message: "Hello!",
-    conversation_history: [],
-  }),
-});
+## 🚀 Ideas for Future Improvements
 
-const reader = response.body.getReader();
-const decoder = new TextDecoder();
+### Feature Enhancements
 
-while (true) {
-  const { value, done } = await reader.read();
-  if (done) break;
+**1. Multi-Model Support:**
 
-  const chunk = decoder.decode(value);
-  const lines = chunk.split("\n");
+```python
+# Support for different AI models based on use case
+models = {
+    "fast": "gemini-1.5-flash",      # Quick summaries
+    "detailed": "gemini-1.5-pro",   # Deep analysis
+    "code": "code-bison",            # Code summarization
+}
+```
 
-  for (const line of lines) {
-    if (line.startsWith("data: ")) {
-      const data = line.slice(6);
-      if (data === "[DONE]") return;
+**2. Advanced Summarization Options:**
 
-      try {
-        const parsed = JSON.parse(data);
-        if (parsed.content) {
-          console.log(parsed.content); // Handle streaming content
+- Summary length control (short, medium, detailed)
+- Multiple summary formats (bullet points, paragraphs, executive summary)
+- Language detection and multi-language support
+- Custom summary templates for different content types
+
+**3. Content Processing:**
+
+- File upload support (PDF, DOCX, TXT)
+- URL content extraction and summarization
+- Batch processing for multiple documents
+- Content type detection and optimization
+
+**4. User Experience:**
+
+- Summary history and favorites
+- Export options (PDF, DOCX, markdown)
+- Summary comparison and merging
+- Real-time collaboration features
+
+**5. Integration Features:**
+
+- Webhook notifications
+- REST API for third-party integrations
+- Browser extension support
+- Slack/Teams bot integration
+
+### Technical Improvements
+
+**1. Caching Layer:**
+
+```python
+# Redis-based caching for frequent requests
+@lru_cache(maxsize=1000)
+async def cached_summary(content_hash: str) -> str:
+    # Return cached summary if available
+    pass
+```
+
+**2. Queue System:**
+
+- Background job processing with Celery
+- Priority queues for different request types
+- Batch processing optimization
+
+**3. Advanced Monitoring:**
+
+- Request tracing and performance metrics
+- AI model usage analytics
+- Cost tracking and optimization
+- Real-time health dashboards
+
+## 🔒 Scaling and Security Considerations
+
+### Scaling Strategies
+
+**1. Horizontal Scaling:**
+
+```bash
+# Multiple application instances behind load balancer
+# Each instance handles streaming independently
+uvicorn app.main:app --port 8001 --workers 4
+uvicorn app.main:app --port 8002 --workers 4
+# + nginx load balancer
+```
+
+**2. Vertical Scaling:**
+
+- Optimize for I/O-bound operations (AI API calls)
+- Memory usage is minimal due to streaming
+- CPU usage depends on request volume, not content size
+
+**3. Database Considerations:**
+
+```python
+# Future database integration for user management
+# Recommended: PostgreSQL with async drivers
+DATABASE_URL = "postgresql+asyncpg://user:pass@localhost/easymate"
+```
+
+**4. Caching Strategy:**
+
+- Redis for frequently requested summaries
+- CDN for static content
+- Application-level caching for configuration
+
+### Security Implementations
+
+**1. API Security:**
+
+```python
+# Rate limiting (recommended implementation)
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+@app.post("/api/v1/chat/stream")
+@limiter.limit("10/minute")  # Prevent abuse
+async def stream_chat(request: Request):
+    pass
+```
+
+**2. Input Validation & Sanitization:**
+
+- Pydantic models for request validation
+- Content length limits (currently 50,000 chars)
+- Input sanitization to prevent injection attacks
+
+**3. Environment Security:**
+
+```env
+# Production security settings
+ENVIRONMENT=production
+DEBUG=false
+GEMINI_API_KEY=your_secure_key_here
+ALLOWED_ORIGINS=["https://yourdomain.com"]
+```
+
+**4. Infrastructure Security:**
+
+- HTTPS enforcement in production
+- API key rotation strategy
+- Request logging and monitoring
+- CORS configuration for specific domains only
+
+### Production Deployment
+
+**1. Container Deployment (Recommended):**
+
+```dockerfile
+FROM python:3.11-slim
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY app/ ./app/
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+```
+
+**2. Process Management:**
+
+```bash
+# Using systemd for production
+sudo systemctl enable easymate-backend
+sudo systemctl start easymate-backend
+```
+
+**3. Monitoring & Logging:**
+
+- Structured logging with proper log levels
+- Health check endpoints for monitoring
+- Error tracking (e.g., Sentry integration)
+- Performance metrics collection
+
+**4. Backup & Recovery:**
+
+- Configuration backup strategy
+- API usage metrics preservation
+- Disaster recovery procedures
+
+## 🔧 Development & Testing
+
+### Development Workflow
+
+**1. Adding New Features:**
+
+```bash
+# 1. Create feature branch
+git checkout -b feature/new-summarization-type
+
+# 2. Add endpoint in app/api/v1/endpoints/
+# 3. Define schemas in app/schemas/
+# 4. Implement service logic in app/services/
+# 5. Register routes in app/api/v1/router.py
+
+# 6. Test locally
+uvicorn app.main:app --reload
+
+# 7. Test with frontend integration
+```
+
+**2. Testing Endpoints:**
+
+```bash
+# Health check
+curl http://localhost:8000/api/v1/health
+
+# Interactive API docs
+open http://localhost:8000/docs
+
+# Test streaming with curl
+curl -N -X POST "http://localhost:8000/api/v1/chat/stream" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "Test content for summarization"}'
+```
+
+**3. Code Quality:**
+
+```bash
+# Format code (if using black)
+black app/
+
+# Type checking (if using mypy)
+mypy app/
+
+# Lint code (if using flake8)
+flake8 app/
+```
+
+### Frontend Integration Guide
+
+**Next.js/React Integration:**
+
+```typescript
+// lib/api.ts - Complete streaming implementation
+export async function streamSummarization({
+  message,
+  onChunk,
+  onComplete,
+  onError,
+}: {
+  message: string;
+  onChunk?: (chunk: { content: string; model: string }) => void;
+  onComplete?: () => void;
+  onError?: (error: Error) => void;
+}) {
+  try {
+    const response = await fetch("/api/v1/chat/stream", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, conversation_history: [] }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error("No response body");
+
+    const decoder = new TextDecoder();
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value);
+      const lines = chunk.split("\n");
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") {
+            onComplete?.();
+            return;
+          }
+
+          try {
+            const parsed = JSON.parse(data);
+            if (parsed.content || parsed.is_complete) {
+              onChunk?.(parsed);
+            }
+          } catch (parseError) {
+            console.warn("Failed to parse chunk:", data);
+          }
         }
-      } catch (e) {
-        // Handle parsing errors
       }
     }
+  } catch (error) {
+    onError?.(error instanceof Error ? error : new Error("Unknown error"));
   }
 }
 ```
+
+---
+
+## 📞 Support & Contributing
+
+### Getting Help
+
+- **Documentation**: Check this README and API docs at `/docs`
+- **Issues**: Report bugs and request features in the project repository
+- **Health Check**: Always verify with `/api/v1/health` if something isn't working
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+---
+
+**Built with ❤️ using FastAPI and Google Gemini AI**
