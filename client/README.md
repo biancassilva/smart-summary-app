@@ -1,75 +1,143 @@
-# EasyMate Client
+# Smart Summary App - Frontend
 
-A Next.js application for AI-powered text summarization, built with Tailwind CSS v4.
+A modern Next.js 15 application for AI-powered text summarization with real-time streaming responses.
 
-## Features
+## 🏗️ Architecture
 
-- Clean, modern UI with Tailwind CSS
-- Text input with character validation (50-50,000 characters)
-- Integration with EasyMate backend API
-- Real-time status updates for summary generation
-- Responsive design for all devices
+This application follows Next.js best practices with a clean, modular architecture:
 
-## Getting Started
+```
+src/
+├── app/                    # Next.js 15 App Router
+│   ├── layout.tsx         # Root layout
+│   └── page.tsx           # Home page
+├── components/            # Reusable UI components
+│   ├── chat/             # Chat-specific components
+│   │   ├── ChatForm.tsx  # Message input form
+│   │   ├── ChatResponse.tsx # AI response display
+│   │   └── MarkdownRenderer.tsx # Markdown rendering
+│   ├── layout/           # Layout components
+│   │   └── Header.tsx    # Application header
+│   └── ui/               # Generic UI components
+│       ├── ErrorBoundary.tsx # Error handling
+│       └── LoadingSpinner.tsx # Loading states
+├── hooks/                # Custom React hooks
+│   └── useChat.ts        # Chat state management
+├── lib/                  # Utility functions
+│   ├── api.ts           # API service layer
+│   ├── markdown.ts      # Markdown preprocessing
+│   └── utils.ts         # Common utilities
+└── types/               # TypeScript definitions
+    └── chat.ts          # Chat-related types
+```
+
+## 🚀 Features
+
+- **Modern Architecture**: Built with Next.js 15, React 19, and TypeScript
+- **Real-time Streaming**: Server-Sent Events for live AI responses
+- **Markdown Support**: Full markdown rendering with syntax highlighting
+- **Error Boundaries**: Robust error handling and recovery
+- **Custom Hooks**: Reusable state management logic
+- **Component Separation**: Clean, testable component architecture
+- **Type Safety**: Full TypeScript coverage
+
+## 🛠️ Development
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 18+ 
 - npm or yarn
-- EasyMate backend running on `http://localhost:8000`
 
-### Installation
+### Setup
 
 1. Install dependencies:
+```bash
+npm install
+```
 
-   ```bash
-   npm install
-   ```
+2. Copy environment variables:
+```bash
+cp .env.local.example .env.local
+```
 
-2. Start the development server:
+3. Start the development server:
+```bash
+npm run dev
+```
 
-   ```bash
-   npm run dev
-   ```
-
-3. Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-## Usage
-
-1. Paste your text (article, meeting notes, email, etc.) into the textarea
-2. Ensure the text is between 50 and 50,000 characters
-3. Click "Generate Summary" to send the text to the backend
-4. View the generated summary or any error messages
-
-## API Integration
-
-The application integrates with the EasyMate backend API:
-
-- **Endpoint**: `POST /api/v1/summaries/`
-- **Request Body**: `{ "text": "your text here" }`
-- **Response**: Summary object with status, text, and metadata
-
-## Technologies Used
-
-- **Next.js 15** - React framework
-- **TypeScript** - Type safety
-- **Tailwind CSS v4** - Utility-first CSS framework
-- **React 19** - UI library
-
-## Development
+### Scripts
 
 - `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint
 
-## Project Structure
+## 🏛️ Architecture Patterns
 
+### Custom Hooks Pattern
+The `useChat` hook encapsulates all chat-related state and logic:
+```typescript
+const { text, response, isStreaming, handleSubmit } = useChat();
 ```
-src/
-├── app/
-│   ├── globals.css      # Global styles with Tailwind
-│   ├── layout.tsx       # Root layout component
-│   └── page.tsx         # Home page with text input
-└── ...
+
+### Service Layer Pattern
+API calls are abstracted into a service layer:
+```typescript
+import { streamChatCompletion } from '@/lib/api';
 ```
+
+### Component Composition
+Components are small, focused, and composable:
+```tsx
+<ChatResponse response={response} isStreaming={isStreaming} />
+```
+
+### Error Boundaries
+Graceful error handling at the component level:
+```tsx
+<ErrorBoundary>
+  <ChatPage />
+</ErrorBoundary>
+```
+
+## 🎨 Styling
+
+- **Tailwind CSS**: Utility-first CSS framework
+- **Responsive Design**: Mobile-first approach
+- **Custom Components**: Consistent design system
+
+## 📦 Dependencies
+
+### Core
+- `next` - React framework
+- `react` - UI library  
+- `typescript` - Type safety
+
+### UI & Styling
+- `tailwindcss` - CSS framework
+- `clsx` - Conditional classes
+- `react-markdown` - Markdown rendering
+
+### Development
+- `eslint` - Code linting
+- `@types/*` - TypeScript definitions
+
+## 🔧 Configuration
+
+- `tsconfig.json` - TypeScript configuration with path mapping
+- `tailwind.config.js` - Tailwind CSS configuration
+- `next.config.js` - Next.js configuration
+- `.env.local` - Environment variables
+
+## 🚦 Best Practices Implemented
+
+1. **Separation of Concerns**: Business logic separated from UI
+2. **Custom Hooks**: Reusable state logic
+3. **Type Safety**: Full TypeScript coverage
+4. **Error Handling**: Comprehensive error boundaries
+5. **Performance**: Optimized with Next.js features
+6. **Accessibility**: ARIA labels and semantic HTML
+7. **Code Organization**: Clear folder structure
+8. **Environment Configuration**: Proper env var management
+
+This architecture ensures maintainability, scalability, and follows modern React/Next.js conventions.
