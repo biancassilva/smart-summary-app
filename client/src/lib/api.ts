@@ -1,6 +1,7 @@
-import { StreamChunk } from '@/types/chat';
+import { StreamChunk } from "@/types/chat";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000";
 
 export class ApiError extends Error {
   constructor(
@@ -9,12 +10,13 @@ export class ApiError extends Error {
     public statusText: string
   ) {
     super(message);
-    this.name = 'ApiError';
+    this.name = "ApiError";
   }
 }
 
 export interface ChatStreamOptions {
   message: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   conversation_history?: any[];
   stream?: boolean;
   onChunk?: (chunk: StreamChunk) => void;
@@ -63,7 +65,7 @@ export async function streamChatCompletion({
     const decoder = new TextDecoder();
 
     console.log("🔄 Starting to read stream...");
-    
+
     while (true) {
       const { done, value } = await reader.read();
 
@@ -93,7 +95,7 @@ export async function streamChatCompletion({
 
           try {
             const data: StreamChunk = JSON.parse(dataContent);
-            
+
             if (data.content || data.is_complete) {
               onChunk?.(data);
             }
@@ -104,7 +106,12 @@ export async function streamChatCompletion({
               return;
             }
           } catch (parseError) {
-            console.error("❌ Failed to parse JSON:", parseError, "Data:", dataContent);
+            console.error(
+              "❌ Failed to parse JSON:",
+              parseError,
+              "Data:",
+              dataContent
+            );
 
             if (dataContent.includes("error")) {
               try {
@@ -116,7 +123,11 @@ export async function streamChatCompletion({
                   "Server Error"
                 );
               } catch {
-                throw new ApiError("Failed to parse error response", 500, "Parse Error");
+                throw new ApiError(
+                  "Failed to parse error response",
+                  500,
+                  "Parse Error"
+                );
               }
             }
           }
@@ -125,7 +136,7 @@ export async function streamChatCompletion({
     }
   } catch (err) {
     console.error("🚨 StreamChatCompletion error:", err);
-    
+
     if (err instanceof ApiError) {
       onError?.(err);
     } else {
