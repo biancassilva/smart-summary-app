@@ -159,42 +159,17 @@ Always format your response using rich markdown to make the summary clear and sc
                     full_content += content
                     logger.debug(f"Chunk content: '{content[:50]}...' (length: {len(content)})")
                     
-                    # Break content into smaller chunks for more granular streaming
-                    words = content.split()
-                    chunk_size = settings.STREAMING_CHUNK_SIZE
+                    # Send content as-is to preserve markdown formatting
                     delay_seconds = settings.STREAMING_DELAY_MS / 1000.0
                     
-                    if len(words) > chunk_size:  # If chunk has more words than chunk_size, break it down
-                        # Send words in groups based on STREAMING_CHUNK_SIZE
-                        word_groups = []
-                        i = 0
-                        while i < len(words):
-                            group = words[i:i+chunk_size]
-                            word_groups.append(" ".join(group) + (" " if i + chunk_size < len(words) else ""))
-                            i += chunk_size
-                        
-                        # Yield each word group as a separate chunk
-                        for word_group in word_groups:
-                            response_obj = StreamingChatResponse(
-                                content=word_group,
-                                is_complete=False,
-                                model=current_model
-                            )
-                            logger.debug(f"Yielding word group: '{word_group}'")
-                            yield response_obj
-                            
-                            # Add configurable delay for streaming effect
-                            await asyncio.sleep(delay_seconds)
-                    else:
-                        # For small chunks, send as is
-                        response_obj = StreamingChatResponse(
-                            content=content,
-                            is_complete=False,
-                            model=current_model
-                        )
-                        logger.debug(f"Yielding streaming response: {response_obj}")
-                        yield response_obj
-                        await asyncio.sleep(delay_seconds)  # Consistent delay for better UX
+                    response_obj = StreamingChatResponse(
+                        content=content,
+                        is_complete=False,
+                        model=current_model
+                    )
+                    logger.debug(f"Yielding complete chunk: '{content}'")
+                    yield response_obj
+                    await asyncio.sleep(delay_seconds)
                 else:
                     logger.warning(f"Chunk #{chunk_count} has no text content")
             
