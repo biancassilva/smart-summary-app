@@ -1,0 +1,26 @@
+services:
+  - type: web
+    name: smart-summary-backend
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: false
+      - key: GEMINI_MODEL
+        value: gemini-1.5-flash
+      - key: GEMINI_TEMPERATURE
+        value: 0.7
+      - key: GEMINI_MAX_TOKENS
+        value: 100000
+      - key: STREAMING_CHUNK_SIZE
+        value: 2
+      - key: STREAMING_DELAY_MS
+        value: 50
+      - key: LOG_LEVEL
+        value: INFO
+      - key: ALLOWED_ORIGINS
+        value: '["*"]'
+      # GEMINI_API_KEY should be set as a secret environment variable
