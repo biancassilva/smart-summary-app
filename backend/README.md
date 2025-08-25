@@ -747,6 +747,9 @@ Set these environment variables in your Render service:
 # Required (Set as Secret)
 GEMINI_API_KEY=your_gemini_api_key_here
 
+# Required for Production CORS
+ALLOWED_ORIGINS=["https://your-frontend-domain.vercel.app"]
+
 # Optional (good defaults)
 ENVIRONMENT=production
 DEBUG=false
@@ -756,6 +759,19 @@ GEMINI_MAX_TOKENS=100000
 STREAMING_CHUNK_SIZE=2
 STREAMING_DELAY_MS=50
 LOG_LEVEL=INFO
+```
+
+**CORS Configuration Options:**
+
+```bash
+# Option 1: JSON array (recommended)
+ALLOWED_ORIGINS=["https://smart-summary-app-chi.vercel.app","http://localhost:3000"]
+
+# Option 2: Comma-separated string
+ALLOWED_ORIGINS=https://smart-summary-app-chi.vercel.app,http://localhost:3000
+
+# Option 3: Single domain
+ALLOWED_ORIGINS=https://smart-summary-app-chi.vercel.app
 ```
 
 **2. Deploy Command:**
@@ -774,8 +790,21 @@ uvicorn app.main:app --host 0.0.0.0 --port $PORT
 
 - **Configuration Error**: The backend now ignores unknown environment variables, so old configs won't cause errors
 - **Missing GEMINI_API_KEY**: Set this as a secret environment variable in Render dashboard
+- **CORS Error**: Make sure `ALLOWED_ORIGINS` includes your frontend domain (e.g., `["https://your-app.vercel.app"]`)
 - **Port Issues**: Render automatically sets `$PORT` - no configuration needed
 - **Build Failures**: Check that `requirements.txt` is in the root of your service directory
+
+**Debug CORS Issues:**
+
+Visit `https://your-backend.render.com/cors-debug` to see the current CORS configuration:
+
+```json
+{
+  "allowed_origins": ["https://smart-summary-app-chi.vercel.app"],
+  "environment": "production",
+  "raw_allowed_origins": "[\"https://smart-summary-app-chi.vercel.app\"]"
+}
+```
 
 ### Other Deployment Platforms
 
