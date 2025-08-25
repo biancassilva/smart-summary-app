@@ -1,45 +1,28 @@
-from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import text
-import structlog
-
-from app.api.deps import get_db
+from fastapi import APIRouter
 from app.core.config import settings
+from app.schemas.common import HealthResponse
 
-router = APIRouter()
-logger = structlog.get_logger()
+router = APIRouter(tags=["health"])
 
 
-@router.get("/health")
+@router.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Basic health check endpoint"""
-    return {
-        "status": "healthy",
-        "service": settings.PROJECT_NAME,
-        "version": settings.VERSION,
-    }
+    """Health check endpoint"""
+    return HealthResponse(
+        status="healthy",
+        version=settings.VERSION,
+        environment=settings.ENVIRONMENT,
+        message="Service is running properly",
+    )
 
 
-@router.get("/health/detailed")
-async def detailed_health_check(db: AsyncSession = Depends(get_db)):
-    """Detailed health check including database connectivity"""
-    health_status = {
-        "status": "healthy",
-        "service": settings.PROJECT_NAME,
-        "version": settings.VERSION,
-        "checks": {},
-    }
+@router.get("/health/ready")
+async def readiness_check():
+    """Readiness check for deployment"""
+    return {"status": "ready"}
 
-    # Database check
-    try:
-        await db.execute(text("SELECT 1"))
-        health_status["checks"]["database"] = "healthy"
-    except Exception as e:
-        logger.error("Database health check failed", error=str(e))
-        health_status["checks"]["database"] = "unhealthy"
-        health_status["status"] = "degraded"
 
-    # OpenAI API check (optional - might want to skip to avoid API costs)
-    health_status["checks"]["openai"] = "not_checked"
-
-    return health_status
+@router.get("/health/live")
+async def liveness_check():
+    """Liveness check for deployment"""
+    return {"status": "alive"}

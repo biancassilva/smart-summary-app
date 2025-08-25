@@ -1,70 +1,95 @@
-from fastapi import FastAPI, Request
+import logging
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from contextlib import asynccontextmanager
-import structlog
+import uvicorn
 
-from app.api.v1.api import api_router
 from app.core.config import settings
-from app.core.logging import setup_logging
-from app.db.database import engine
-from app.db.base import Base
-from app.middleware.rate_limit import RateLimitMiddleware
-from app.middleware.monitoring import PrometheusMiddleware
+from app.core.exceptions import (
+    CustomHTTPException,
+    OpenAIServiceException,
+    custom_http_exception_handler,
+    openai_service_exception_handler,
+    general_exception_handler,
+)
+from app.api.v1.router import api_router
 
-# Setup logging
-setup_logging()
-logger = structlog.get_logger()
+# Configure logging
+logging.basicConfig(
+    level=getattr(logging, settings.LOG_LEVEL.upper()),
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Lifespan events for the application"""
+    """Application lifespan events"""
     # Startup
-    logger.info("Starting up Text Summarization API")
-
-    # Create tables
-    async with engine.begin() as conn:
-        await conn.run_sync(Base.metadata.create_all)
+    logger.info(f"Starting {settings.PROJECT_NAME} v{settings.VERSION}")
+    logger.info(f"Environment: {settings.ENVIRONMENT}")
+    logger.info(f"Gemini Model: {settings.GEMINI_MODEL}")
 
     yield
 
     # Shutdown
-    logger.info("Shutting down Text Summarization API")
-    await engine.dispose()
+    logger.info(f"Shutting down {settings.PROJECT_NAME}")
 
 
-def create_application() -> FastAPI:
-    """Create and configure the FastAPI application"""
+# Create FastAPI application
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    description=settings.DESCRIPTION,
+    version=settings.VERSION,
+    debug=settings.DEBUG,
+    lifespan=lifespan,
+)
 
-    app = FastAPI(
-        title=settings.PROJECT_NAME,
-        version=settings.VERSION,
-        description="A scalable API for text summarization using OpenAI",
-        openapi_url=f"{settings.API_V1_STR}/openapi.json",
-        docs_url=f"{settings.API_V1_STR}/docs",
-        redoc_url=f"{settings.API_V1_STR}/redoc",
-        lifespan=lifespan,
-    )
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"] if settings.ENVIRONMENT == "development" else settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["*"],
+)
 
-    # Middleware
+# Add trusted host middleware for production
+if settings.ENVIRONMENT == "production":
     app.add_middleware(
-        CORSMiddleware,
-        allow_origins=settings.ALLOWED_HOSTS,
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
+        TrustedHostMiddleware,
+        allowed_hosts=["*"],  # Configure with actual domains in production
     )
 
-    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.ALLOWED_HOSTS)
+# Register exception handlers
+app.add_exception_handler(CustomHTTPException, custom_http_exception_handler)
+app.add_exception_handler(OpenAIServiceException, openai_service_exception_handler)
+app.add_exception_handler(Exception, general_exception_handler)
 
-    app.add_middleware(RateLimitMiddleware)
-    app.add_middleware(PrometheusMiddleware)
-
-    # Include API router
-    app.include_router(api_router, prefix=settings.API_V1_STR)
-
-    return app
+# Include API router
+app.include_router(api_router, prefix=settings.API_V1_PREFIX)
 
 
-app = create_application()
+# Root endpoint
+@app.get("/")
+async def root():
+    """Root endpoint"""
+    return {
+        "message": f"Welcome to {settings.PROJECT_NAME}",
+        "version": settings.VERSION,
+        "environment": settings.ENVIRONMENT,
+        "docs": "/docs",
+        "health": f"{settings.API_V1_PREFIX}/health",
+    }
+
+
+if __name__ == "__main__":
+    uvicorn.run(
+        "app.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=settings.DEBUG,
+        log_level=settings.LOG_LEVEL.lower(),
+    )

@@ -1,48 +1,46 @@
 from pydantic_settings import BaseSettings
-from typing import List, Optional
+from typing import List
 import os
-from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class Settings(BaseSettings):
-    # API Settings
-    API_V1_STR: str = "/api/v1"
-    PROJECT_NAME: str = "Text Summarization API"
+    # API Configuration
+    API_V1_PREFIX: str = "/api/v1"
+    PROJECT_NAME: str = "FastAPI Backend"
     VERSION: str = "1.0.0"
-    DEBUG: bool = False
+    DESCRIPTION: str = "Scalable FastAPI backend with OpenAI integration"
 
-    # Database
-    DATABASE_URL: str
-    DATABASE_URL_TEST: Optional[str] = None
-
-    # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
-
-    # OpenAI
-    OPENAI_API_KEY: str
-    OPENAI_MODEL: str = "gpt-3.5-turbo"
-    OPENAI_MAX_TOKENS: int = 500
-    OPENAI_TEMPERATURE: float = 0.3
-
-    # Security
-    SECRET_KEY: str
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+    # Environment
+    ENVIRONMENT: str = "development"
+    DEBUG: bool = ENVIRONMENT == "development"
 
     # CORS
-    ALLOWED_HOSTS: List[str] = ["*"]
+    ALLOWED_ORIGINS: List[str] = [
+        "http://localhost:3000",
+        "http://localhost:3003",
+        "http://localhost:3004",
+        "http://localhost:8080",
+        "http://127.0.0.1:3000",
+        "http://127.0.0.1:3003",
+        "http://127.0.0.1:3004",
+        "http://127.0.0.1:8080",
+    ]
 
-    # Rate Limiting
-    RATE_LIMIT_PER_MINUTE: int = 10
-    RATE_LIMIT_PER_HOUR: int = 100
+    # Gemini Configuration
+    GEMINI_API_KEY: str
+    GEMINI_MODEL: str = "gemini-1.5-flash"
+    GEMINI_MAX_TOKENS: int = 100000
+    GEMINI_TEMPERATURE: float = 0.7
+    
+    # Streaming Configuration
+    STREAMING_CHUNK_SIZE: int = 3  # Words per chunk (optimized for better flow)
+    STREAMING_DELAY_MS: int = 25   # Delay between chunks in milliseconds (reduced for better UX)
 
-    # Celery
-    CELERY_BROKER_URL: str = "redis://localhost:6379/1"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/2"
-
-    # Text limits
-    MAX_TEXT_LENGTH: int = 50000  # characters
-    MIN_TEXT_LENGTH: int = 50  # characters
+    # Logging
+    LOG_LEVEL: str = "INFO"
 
     class Config:
         env_file = ".env"
