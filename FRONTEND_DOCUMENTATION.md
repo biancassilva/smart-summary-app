@@ -1,4 +1,4 @@
-# EasyMate Frontend Application Documentation
+# EasyMate Frontend Application Documentation (WIP)
 
 ## Overview
 
