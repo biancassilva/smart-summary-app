@@ -5,6 +5,10 @@ on:
     # Trigger the workflow ONLY when a PR is closed.
     types: [closed]
 
+permissions:
+  pull-requests: write
+  issues: write
+
 jobs:
   post_gemini_summary_command:
     # Ensure this job only runs if the PR was merged.
