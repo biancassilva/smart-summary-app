@@ -1,0 +1,33 @@
+name: 🤖 Post /gemini summary Command After Merge
+
+on:
+  pull_request:
+    # Trigger the workflow ONLY when a PR is closed.
+    types: [closed]
+
+jobs:
+  post_gemini_summary_command:
+    # Ensure this job only runs if the PR was merged.
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 💬 Post '/gemini summary' Command
+        # Use 'github-script' to easily interact with the GitHub API (Octokit).
+        uses: actions/github-script@v7
+        with:
+          # The default GITHUB_TOKEN has permission to post comments.
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const prNumber = context.issue.number;
+            const repo = context.repo.repo;
+            const owner = context.repo.owner;
+            const command = '/gemini summary';
+            
+            // Use Octokit to create a new comment on the Issue/PR.
+            await github.rest.issues.createComment({
+              owner: owner,
+              repo: repo,
+              issue_number: prNumber,
+              body: command
+            });
