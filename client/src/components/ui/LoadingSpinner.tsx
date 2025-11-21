@@ -5,9 +5,9 @@ interface LoadingSpinnerProps {
   className?: string;
 }
 
-export function LoadingSpinner({ 
-  size = 'md', 
-  className 
+export function LoadingSpinner({
+  size = 'md',
+  className
 }: LoadingSpinnerProps) {
   const sizeClasses = {
     sm: 'h-4 w-4',
@@ -16,12 +16,13 @@ export function LoadingSpinner({
   };
 
   return (
-    <div 
+    <div
       className={cn(
-        'animate-spin rounded-full border-b-2 border-current',
+        'rounded-full border-b-2 border-current',
         sizeClasses[size],
         className
       )}
+      style={{ animation: 'spin 0.6s linear infinite' }}
       aria-label="Loading"
     />
   );
