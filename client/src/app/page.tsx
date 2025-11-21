@@ -25,7 +25,7 @@ function ChatPage() {
       <div className="h-screen flex flex-col md:flex-row">
         {/* Mobile: Second column (Response Panel) appears first on mobile */}
         {isPanelOpen && (
-          <div className="md:hidden w-full h-1/2 border-b border-gray-200">
+          <div className="md:hidden w-full h-1/2 border-b border-gray-200 animate-in fade-in slide-in-from-top duration-300">
             <div className="bg-white h-full flex flex-col">
               <div className="flex items-center justify-between p-2 border-b border-gray-200 bg-gray-50">
                 <h2 className="text-lg font-bold text-gray-900">
@@ -90,7 +90,7 @@ function ChatPage() {
           }`}
         >
           {isPanelOpen && (
-            <div className="bg-white border-l border-gray-200 h-full flex flex-col">
+            <div className="bg-white border-l border-gray-200 h-full flex flex-col animate-in fade-in slide-in-from-right duration-300">
               <div className="flex items-center justify-between py-4 px-4 border-b border-gray-200 bg-gray-50">
                 <h2 className="text-lg font-bold text-gray-900">
                   Summary Result
