@@ -1,4 +1,4 @@
-# Smart Summary App - AI Text Summarization Platform
+# Smart Summary App - AI Text Summarization Platform (WIP)
 
 Smart Summary App is a modern, full-stack application that provides AI-powered text summarization with real-time streaming capabilities. Built with Next.js and FastAPI, it offers a seamless user experience for generating concise summaries from articles, meeting notes, emails, and other text content.
 
