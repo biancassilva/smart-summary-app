@@ -32,6 +32,8 @@ def get_prs(state):
 
 def clean_text(text):
     """Remove markdown and HTML tags from text"""
+    # Remove everything from Changelog onwards
+    text = re.sub(r'Changelog[\s\S]*$', '', text)
     # Remove HTML tags
     text = re.sub(r'<[^>]+>', '', text)
     # Remove markdown bold/italic (**text**, __text__, *text*, _text_)
@@ -91,7 +93,7 @@ def format_pr_section(title, prs, emoji):
         text = (
             f"*<{pr['html_url']}|{pr['title']}>* by *{pr['user']['login']}*\n"
             f"Status: {status}\n"
-            f"Summary: {last_comment}"
+            f"{last_comment}"
         )
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
         blocks.append({"type": "divider"})
