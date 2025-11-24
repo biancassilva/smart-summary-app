@@ -87,7 +87,7 @@ def format_pr_section(title, prs, emoji):
         return []
     blocks = [{"type": "header", "text": {"type": "plain_text", "text": f"{emoji} {title}"}}]
     for pr in prs:
-        status = "📝 Draft" if pr.get("draft") else "✅ Ready"
+        status = "📝 Draft" if pr.get("draft") else "✅ Merged"
         last_comment = get_last_comment(pr["number"])
 
         text = (
