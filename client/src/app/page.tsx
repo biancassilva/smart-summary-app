@@ -33,7 +33,7 @@ function ChatPage() {
                 </h2>
                 <button
                   onClick={closeSidePanel}
-                  className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                  className="p-2 bg-red-500 rounded-lg hover:bg-gray-100 transition-colors"
                   aria-label="Close panel"
                 >
                   <svg
