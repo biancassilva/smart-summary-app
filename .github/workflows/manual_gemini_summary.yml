@@ -21,7 +21,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           # The default GITHUB_TOKEN has permission to post comments.
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.PAT_TOKEN }}
           script: |
             const prNumber = context.issue.number;
             const repo = context.repo.repo;
