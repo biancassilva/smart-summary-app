@@ -1,4 +1,5 @@
 import os
+import re
 import requests
 from datetime import datetime, timedelta, timezone
 from dotenv import load_dotenv
@@ -29,6 +30,22 @@ def get_prs(state):
     return response.json()
 
 
+def clean_text(text):
+    """Remove markdown and HTML tags from text"""
+    # Remove HTML tags
+    text = re.sub(r'<[^>]+>', '', text)
+    # Remove markdown bold/italic (**text**, __text__, *text*, _text_)
+    text = re.sub(r'[*_]{1,2}([^*_]+)[*_]{1,2}', r'\1', text)
+    # Remove markdown links [text](url)
+    text = re.sub(r'\[([^\]]+)\]\([^)]+\)', r'\1', text)
+    # Remove markdown code blocks and inline code
+    text = re.sub(r'```[\s\S]*?```', '', text)
+    text = re.sub(r'`([^`]+)`', r'\1', text)
+    # Remove markdown headers
+    text = re.sub(r'^#+\s+', '', text, flags=re.MULTILINE)
+    return text.strip()
+
+
 def get_last_comment(pr_number):
     """Fetch the last comment from a PR"""
     url = f"https://api.github.com/repos/{REPO_URL}/issues/{pr_number}/comments"
@@ -36,7 +53,8 @@ def get_last_comment(pr_number):
     response.raise_for_status()
     comments = response.json()
     if comments:
-        return comments[-1].get("body", "")
+        comment_text = comments[-1].get("body", "")
+        return clean_text(comment_text)
     return ""
 
 
