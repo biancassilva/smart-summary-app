@@ -2,8 +2,8 @@ name: Daily PR Report to Slack
 
 on:
   schedule:
-    # Runs every day at 9 AM UTC
-    - cron: '0 9 * * *'
+    # Runs every day at 12 PM UTC (9 AM Brazilian Time)
+    - cron: '0 12 * * *'
   workflow_dispatch: # allows manual trigger too
 
 jobs:

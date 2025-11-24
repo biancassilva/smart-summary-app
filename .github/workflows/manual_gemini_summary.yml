@@ -1,4 +1,4 @@
-name: 🤖 Post /gemini summary Command After Merge
+name: 🤖 Post /gemini summary command after merge
 
 on:
   pull_request:
