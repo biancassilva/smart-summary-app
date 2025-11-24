@@ -29,6 +29,17 @@ def get_prs(state):
     return response.json()
 
 
+def get_last_comment(pr_number):
+    """Fetch the last comment from a PR"""
+    url = f"https://api.github.com/repos/{REPO_URL}/issues/{pr_number}/comments"
+    response = requests.get(url, headers=HEADERS)
+    response.raise_for_status()
+    comments = response.json()
+    if comments:
+        return comments[-1].get("body", "")
+    return ""
+
+
 def categorize_prs():
     """Return merged PRs between 00:00 UTC and 23:59 UTC today."""
     closed_prs = get_prs("closed")
@@ -56,17 +67,13 @@ def format_pr_section(title, prs, emoji):
         return []
     blocks = [{"type": "header", "text": {"type": "plain_text", "text": f"{emoji} {title}"}}]
     for pr in prs:
-        assignees = ", ".join([a["login"] for a in pr.get("assignees", [])]) or "None"
-        reviewers = ", ".join([r["login"] for r in pr.get("requested_reviewers", [])]) or "None"
-        description = pr.get("body") or "_No description_"
         status = "📝 Draft" if pr.get("draft") else "✅ Ready"
+        last_comment = get_last_comment(pr["number"])
 
         text = (
             f"*<{pr['html_url']}|{pr['title']}>* by *{pr['user']['login']}*\n"
             f"Status: {status}\n"
-            f"Assignees: {assignees}\n"
-            f"Reviewers: {reviewers}\n\n"
-            f"Summary: {description}"
+            f"Summary: {last_comment}"
         )
         blocks.append({"type": "section", "text": {"type": "mrkdwn", "text": text}})
         blocks.append({"type": "divider"})
